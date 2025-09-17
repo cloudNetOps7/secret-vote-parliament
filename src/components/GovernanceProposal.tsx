@@ -3,9 +3,11 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Vote, Clock, Users, Lock, CheckCircle, Plus } from 'lucide-react';
+import { Vote, Clock, Users, Lock, CheckCircle, Plus, Crown, Scroll } from 'lucide-react';
 import { useAccount } from 'wagmi';
 import { useSecretVoteParliament } from '@/hooks/useContract';
+import { useVoting } from '@/hooks/useVoting';
+import EncryptionProgress from './EncryptionProgress';
 import { toast } from 'sonner';
 
 interface Proposal {
@@ -58,9 +60,17 @@ const GovernanceProposal = () => {
     error
   } = useSecretVoteParliament();
 
+  const {
+    votingState,
+    submitEncryptedVote,
+    submitEncryptedReputation,
+    resetVotingState
+  } = useVoting();
+
   const [selectedVote, setSelectedVote] = useState<{ [key: string]: 'yes' | 'no' | null }>({});
   const [hasVoted, setHasVoted] = useState<{ [key: string]: boolean }>({});
   const [showCreateProposal, setShowCreateProposal] = useState(false);
+  const [showEncryptionProgress, setShowEncryptionProgress] = useState(false);
   const [newProposal, setNewProposal] = useState({
     title: '',
     description: '',
@@ -86,19 +96,32 @@ const GovernanceProposal = () => {
       return;
     }
 
-    try {
-      const voteChoice = selectedVote[proposalId] === 'yes' ? '1' : '0';
-      // In a real implementation, this would use FHE encryption
-      const encryptedVote = `0x${voteChoice.padStart(64, '0')}`;
-      const inputProof = `0x${'0'.repeat(128)}`; // Placeholder proof
-      
-      await castVote(parseInt(proposalId), encryptedVote, inputProof);
-      setHasVoted(prev => ({ ...prev, [proposalId]: true }));
-      toast.success('Vote submitted successfully!');
-    } catch (err) {
-      toast.error('Failed to submit vote');
-      console.error(err);
+    const voteChoice = selectedVote[proposalId];
+    if (!voteChoice) {
+      toast.error('Please select a vote option first');
+      return;
     }
+
+    // Show encryption progress
+    setShowEncryptionProgress(true);
+    resetVotingState();
+
+    // Submit encrypted vote
+    await submitEncryptedVote(
+      parseInt(proposalId),
+      voteChoice,
+      () => {
+        // Success callback
+        setHasVoted(prev => ({ ...prev, [proposalId]: true }));
+        setShowEncryptionProgress(false);
+        toast.success('Encrypted vote submitted successfully!');
+      },
+      (error) => {
+        // Error callback
+        setShowEncryptionProgress(false);
+        toast.error(`Vote submission failed: ${error}`);
+      }
+    );
   };
 
   const handleRegisterVoter = async () => {
@@ -107,18 +130,24 @@ const GovernanceProposal = () => {
       return;
     }
 
-    try {
-      // In a real implementation, this would use FHE encryption
-      const reputation = '50'; // Default reputation
-      const encryptedReputation = `0x${reputation.padStart(64, '0')}`;
-      const inputProof = `0x${'0'.repeat(128)}`; // Placeholder proof
-      
-      await registerVoter(encryptedReputation, inputProof);
-      toast.success('Successfully registered as voter!');
-    } catch (err) {
-      toast.error('Failed to register as voter');
-      console.error(err);
-    }
+    // Show encryption progress
+    setShowEncryptionProgress(true);
+    resetVotingState();
+
+    // Submit encrypted reputation
+    await submitEncryptedReputation(
+      50, // Default reputation
+      () => {
+        // Success callback
+        setShowEncryptionProgress(false);
+        toast.success('Successfully registered as voter with encrypted reputation!');
+      },
+      (error) => {
+        // Error callback
+        setShowEncryptionProgress(false);
+        toast.error(`Registration failed: ${error}`);
+      }
+    );
   };
 
   const handleCreateProposal = async () => {
@@ -258,7 +287,13 @@ const GovernanceProposal = () => {
         </Card>
       )}
 
-      {mockProposals.map((proposal) => (
+              {/* Encryption Progress */}
+              <EncryptionProgress 
+                votingState={votingState} 
+                isVisible={showEncryptionProgress} 
+              />
+
+              {mockProposals.map((proposal) => (
         <Card key={proposal.id} className="royal-card p-6">
           <div className="space-y-4">
             {/* Header */}
@@ -268,8 +303,8 @@ const GovernanceProposal = () => {
                   <h3 className="text-xl font-bold">{proposal.title}</h3>
                   {proposal.isEncrypted && (
                     <Badge variant="secondary" className="gap-1 encrypt-pulse">
-                      <Lock className="h-3 w-3" />
-                      Encrypted
+                      <Crown className="h-3 w-3" />
+                      FHE Protected
                     </Badge>
                   )}
                 </div>
@@ -321,9 +356,10 @@ const GovernanceProposal = () => {
                   <Button
                     variant="royal"
                     onClick={() => submitVote(proposal.id)}
+                    disabled={isPending || votingState.isSubmitting || votingState.isEncrypting}
                     className="w-full"
                   >
-                    <Lock className="h-4 w-4 mr-2" />
+                    <Crown className="h-4 w-4 mr-2" />
                     Submit Encrypted Vote
                   </Button>
                 )}

@@ -1,6 +1,6 @@
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { Card } from '@/components/ui/card';
-import { Shield, Crown } from 'lucide-react';
+import { Crown, Lock } from 'lucide-react';
 
 const WalletConnect = () => {
   return (
@@ -16,11 +16,11 @@ const WalletConnect = () => {
           </div>
         </div>
         
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 px-3 py-2 bg-secondary rounded-lg">
-            <Shield className="h-4 w-4 text-mystical-gold" />
-            <span className="text-sm">FHE Protected</span>
-          </div>
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2 px-3 py-2 bg-secondary rounded-lg">
+                    <Lock className="h-4 w-4 text-mystical-gold" />
+                    <span className="text-sm">FHE Protected</span>
+                  </div>
           <ConnectButton 
             chainStatus="icon"
             accountStatus={{
