@@ -1,0 +1,192 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Fantasy Parliament Governance Design System */
+
+@layer base {
+  :root {
+    /* Fantasy Parliament Color Palette */
+    --background: 251 35% 6%;
+    --foreground: 43 100% 88%;
+
+    --card: 251 40% 8%;
+    --card-foreground: 43 100% 88%;
+
+    --popover: 251 45% 10%;
+    --popover-foreground: 43 100% 88%;
+
+    --primary: 262 65% 45%;
+    --primary-foreground: 43 100% 88%;
+
+    --secondary: 262 30% 15%;
+    --secondary-foreground: 43 80% 75%;
+
+    --muted: 251 25% 12%;
+    --muted-foreground: 43 40% 60%;
+
+    --accent: 43 85% 55%;
+    --accent-foreground: 251 35% 6%;
+
+    --destructive: 0 75% 60%;
+    --destructive-foreground: 43 100% 88%;
+
+    --border: 251 25% 18%;
+    --input: 251 25% 15%;
+    --ring: 262 65% 55%;
+
+    --radius: 0.75rem;
+
+    /* Fantasy Design Tokens */
+    --royal-purple: 262 65% 45%;
+    --royal-purple-light: 262 50% 60%;
+    --royal-purple-dark: 262 75% 25%;
+    
+    --mystical-gold: 43 85% 55%;
+    --mystical-gold-light: 43 90% 70%;
+    --mystical-gold-dark: 43 80% 40%;
+    
+    --parliament-blue: 228 45% 35%;
+    --parliament-blue-light: 228 35% 50%;
+    
+    /* Gradients */
+    --gradient-royal: linear-gradient(135deg, hsl(var(--royal-purple)) 0%, hsl(var(--royal-purple-dark)) 100%);
+    --gradient-mystical: linear-gradient(45deg, hsl(var(--mystical-gold)) 0%, hsl(var(--mystical-gold-light)) 100%);
+    --gradient-parliament: linear-gradient(180deg, hsl(var(--parliament-blue)) 0%, hsl(var(--royal-purple-dark)) 100%);
+    --gradient-chamber: radial-gradient(ellipse at center, hsl(var(--royal-purple) / 0.1) 0%, transparent 70%);
+    
+    /* Shadows */
+    --shadow-royal: 0 10px 40px -10px hsl(var(--royal-purple) / 0.4);
+    --shadow-mystical: 0 0 30px hsl(var(--mystical-gold) / 0.3);
+    --shadow-parliament: 0 25px 50px -15px hsl(var(--background) / 0.8);
+    
+    /* Animations */
+    --transition-royal: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+    --transition-mystical: all 0.3s ease-out;
+
+    --sidebar-background: 0 0% 98%;
+
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-serif;
+    background-image: var(--gradient-chamber);
+  }
+}
+
+@layer components {
+  /* Fantasy Parliament Components */
+  .parliament-hall {
+    background: var(--gradient-parliament);
+    position: relative;
+  }
+  
+  .parliament-hall::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: 
+      radial-gradient(circle at 20% 80%, hsl(var(--mystical-gold) / 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, hsl(var(--royal-purple) / 0.15) 0%, transparent 50%);
+    pointer-events: none;
+  }
+  
+  .banner-glow {
+    box-shadow: var(--shadow-mystical);
+    transition: var(--transition-royal);
+  }
+  
+  .banner-glow:hover {
+    box-shadow: var(--shadow-mystical), 0 0 50px hsl(var(--mystical-gold) / 0.4);
+    transform: translateY(-2px);
+  }
+  
+  .royal-card {
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    box-shadow: var(--shadow-parliament);
+    transition: var(--transition-royal);
+  }
+  
+  .royal-card:hover {
+    box-shadow: var(--shadow-royal), var(--shadow-parliament);
+    transform: translateY(-4px);
+  }
+  
+  .mystical-text {
+    background: var(--gradient-mystical);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  .encrypt-pulse {
+    animation: encrypt-glow 2s ease-in-out infinite alternate;
+  }
+  
+  @keyframes encrypt-glow {
+    from {
+      box-shadow: 0 0 20px hsl(var(--royal-purple) / 0.3);
+    }
+    to {
+      box-shadow: 0 0 30px hsl(var(--royal-purple) / 0.6), 0 0 40px hsl(var(--mystical-gold) / 0.3);
+    }
+  }
+}
