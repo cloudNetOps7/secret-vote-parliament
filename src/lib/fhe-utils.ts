@@ -1,8 +1,33 @@
-import { createPublicKey, createPrivateKey, randomBytes } from 'crypto';
-
 // FHE Encryption utilities for Secret Vote Parliament
 // This is a simplified implementation for demonstration purposes
 // In production, you would use Zama's FHE library
+
+// Browser-compatible crypto utilities
+const getRandomBytes = (length: number): Uint8Array => {
+  if (typeof window !== 'undefined' && window.crypto && window.crypto.getRandomValues) {
+    return window.crypto.getRandomValues(new Uint8Array(length));
+  }
+  // Fallback for environments without crypto.getRandomValues
+  const bytes = new Uint8Array(length);
+  for (let i = 0; i < length; i++) {
+    bytes[i] = Math.floor(Math.random() * 256);
+  }
+  return bytes;
+};
+
+const bytesToHex = (bytes: Uint8Array): string => {
+  return Array.from(bytes)
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
+};
+
+const hexToBytes = (hex: string): Uint8Array => {
+  const bytes = new Uint8Array(hex.length / 2);
+  for (let i = 0; i < hex.length; i += 2) {
+    bytes[i / 2] = parseInt(hex.substr(i, 2), 16);
+  }
+  return bytes;
+};
 
 export interface FHEKeyPair {
   publicKey: string;
@@ -33,8 +58,8 @@ export interface ReputationData {
  */
 export function generateFHEKeyPair(): FHEKeyPair {
   // In a real implementation, this would use Zama's FHE key generation
-  const publicKey = randomBytes(32).toString('hex');
-  const privateKey = randomBytes(32).toString('hex');
+  const publicKey = bytesToHex(getRandomBytes(32));
+  const privateKey = bytesToHex(getRandomBytes(32));
   
   return {
     publicKey: `0x${publicKey}`,
@@ -54,12 +79,12 @@ export function encryptVote(voteData: VoteData, publicKey: string): EncryptedDat
     choice: voteChoice === 'yes' ? 1 : 0,
     voter: voterAddress,
     timestamp,
-    nonce: randomBytes(16).toString('hex')
+    nonce: bytesToHex(getRandomBytes(16))
   };
   
   // Simulate FHE encryption
-  const ciphertext = Buffer.from(JSON.stringify(votePayload)).toString('base64');
-  const encryptedCiphertext = `0x${Buffer.from(ciphertext).toString('hex')}`;
+  const ciphertext = btoa(JSON.stringify(votePayload));
+  const encryptedCiphertext = `0x${bytesToHex(new TextEncoder().encode(ciphertext))}`;
   
   // Generate zero-knowledge proof
   const proof = generateVoteProof(voteData, publicKey);
@@ -82,12 +107,12 @@ export function encryptReputation(reputationData: ReputationData, publicKey: str
     reputation,
     voter: voterAddress,
     timestamp,
-    nonce: randomBytes(16).toString('hex')
+    nonce: bytesToHex(getRandomBytes(16))
   };
   
   // Simulate FHE encryption
-  const ciphertext = Buffer.from(JSON.stringify(reputationPayload)).toString('base64');
-  const encryptedCiphertext = `0x${Buffer.from(ciphertext).toString('hex')}`;
+  const ciphertext = btoa(JSON.stringify(reputationPayload));
+  const encryptedCiphertext = `0x${bytesToHex(new TextEncoder().encode(ciphertext))}`;
   
   // Generate zero-knowledge proof
   const proof = generateReputationProof(reputationData, publicKey);
@@ -112,12 +137,12 @@ function generateVoteProof(voteData: VoteData, publicKey: string): string {
     voter: voterAddress,
     timestamp,
     publicKey,
-    signature: randomBytes(32).toString('hex')
+    signature: bytesToHex(getRandomBytes(32))
   };
   
   // Simulate ZK proof generation
-  const proof = Buffer.from(JSON.stringify(proofPayload)).toString('base64');
-  return `0x${Buffer.from(proof).toString('hex')}`;
+  const proof = btoa(JSON.stringify(proofPayload));
+  return `0x${bytesToHex(new TextEncoder().encode(proof))}`;
 }
 
 /**
@@ -132,12 +157,12 @@ function generateReputationProof(reputationData: ReputationData, publicKey: stri
     voter: voterAddress,
     timestamp,
     publicKey,
-    signature: randomBytes(32).toString('hex')
+    signature: bytesToHex(getRandomBytes(32))
   };
   
   // Simulate ZK proof generation
-  const proof = Buffer.from(JSON.stringify(proofPayload)).toString('base64');
-  return `0x${Buffer.from(proof).toString('hex')}`;
+  const proof = btoa(JSON.stringify(proofPayload));
+  return `0x${bytesToHex(new TextEncoder().encode(proof))}`;
 }
 
 /**
@@ -147,8 +172,9 @@ export function verifyVoteProof(encryptedData: EncryptedData, publicKey: string)
   try {
     // In a real implementation, this would verify the ZK proof
     const proofHex = encryptedData.proof.slice(2);
-    const proofBuffer = Buffer.from(proofHex, 'hex');
-    const proofData = JSON.parse(proofBuffer.toString());
+    const proofBytes = hexToBytes(proofHex);
+    const proofString = new TextDecoder().decode(proofBytes);
+    const proofData = JSON.parse(atob(proofString));
     
     // Basic verification
     return proofData.publicKey === publicKey && proofData.signature.length === 64;
@@ -165,8 +191,9 @@ export function decryptVote(encryptedData: EncryptedData, privateKey: string): V
   try {
     // In a real implementation, this would use FHE decryption
     const ciphertextHex = encryptedData.ciphertext.slice(2);
-    const ciphertextBuffer = Buffer.from(ciphertextHex, 'hex');
-    const decryptedData = JSON.parse(ciphertextBuffer.toString());
+    const ciphertextBytes = hexToBytes(ciphertextHex);
+    const ciphertextString = new TextDecoder().decode(ciphertextBytes);
+    const decryptedData = JSON.parse(atob(ciphertextString));
     
     return {
       proposalId: decryptedData.proposalId,
@@ -188,10 +215,10 @@ export function generateVoteCommitment(voteData: VoteData): string {
     proposalId: voteData.proposalId,
     choice: voteData.voteChoice === 'yes' ? 1 : 0,
     timestamp: voteData.timestamp,
-    hash: randomBytes(32).toString('hex')
+    hash: bytesToHex(getRandomBytes(32))
   };
   
-  return `0x${Buffer.from(JSON.stringify(commitment)).toString('hex')}`;
+  return `0x${bytesToHex(new TextEncoder().encode(JSON.stringify(commitment)))}`;
 }
 
 /**
